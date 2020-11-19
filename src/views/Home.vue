@@ -1,7 +1,7 @@
 <template lang="pug">
 .home
   header
-    h1 Superluminal
+    h1 Superl#[b u]minal
     p Superliminal speedrunning
 
   nav
@@ -31,16 +31,14 @@ export default defineComponent({})
 
 <style lang="sass" scoped>
 .home
-  position: absolute
-  right: 0
-  bottom: 0
-  top: 0
-  left: 0
-  color: whitesmoke
+  min-height: 100vh
+  overflow: auto
+  font-size: 40px
+  color: white
   background: linear-gradient(#1a3b39, #122825)
 
   *
-    font-family: "Bebas Neue", cursive
+    font-family: "Bebas Neue", sans-serif
     font-weight: normal
 
 header
@@ -48,14 +46,14 @@ header
   margin-top: 60px
 
   h1
-    color: white
+    color: #dbeee8
     font-size: 100px
 
-  p
-    font-size: 40px
+    b
+      color: #70baab
 
 nav
-  margin-top: 40px
+  margin: 40px 0
   display: flex
   flex-direction: column
   align-items: center
@@ -65,17 +63,26 @@ nav
     border-radius: 5px
     text-align: center
     text-decoration: none
-    font-size: 40px
     width: 300px
     padding: 15px
     margin: 15px
     background-color: #2e7a75
 
     &:hover
-      color: #ffff80
+      color: #f6f6a0
       background-color: #409891
 
     span
       margin-left: 20px
+
+@media (max-width: 500px)
+  .home
+    font-size: 35px
+
+  header
+    margin-top: 30px
+
+    h1
+      font-size: 70px
 
 </style>
