@@ -6,14 +6,17 @@ l-polyline(:lat-lngs="[pos1, pos2]")
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
+import {defineComponent} from "vue"
 import {LIcon, LMarker, LPolyline, LTooltip} from "@vue-leaflet/vue-leaflet"
 
 import roundPushpin from "../assets/icons/round-pushpin.png"
 
 export default defineComponent({
   components: {LMarker, LIcon, LTooltip, LPolyline},
-  props: {pos1: Array, pos2: Array},
+  props: {
+    pos1: {type: Array, required: true},
+    pos2: {type: Array, required: true}
+  },
   setup() {
     return {icon: roundPushpin}
   }

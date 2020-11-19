@@ -1,6 +1,6 @@
 <template lang="pug">
 .container
-  l-map#map( ref="map" @ready="onMapReady" :crs="crs" :min-zoom="-3" :max-zoom="2")
+  l-map#map( ref="map" @ready="onMapReady" :crs="Leaflet.CRS.Simple" :min-zoom="-3" :max-zoom="2")
     collectible(:pos="[6146, 1443]" type="chess-piece")
     collectible(:pos="[1504, 3532]" type="fire-alarm")
     collectible(:pos="[1637, 3406]" type="fire-extinguisher")
@@ -18,13 +18,13 @@ import {LMap} from "@vue-leaflet/vue-leaflet"
 import "leaflet/dist/leaflet.css"
 import "leaflet"
 
-import Collectible from "../components/Collectible.vue";
-import Portal from "../components/Portal.vue";
+import Collectible from "../components/Collectible.vue"
+import Portal from "../components/Portal.vue"
 
 export default defineComponent({
   components: {LMap, Collectible, Portal},
   setup() {
-    return {crs: L.CRS.Simple}
+    return {Leaflet: window.L}
   },
   methods: {
     async onMapReady() {
@@ -32,7 +32,7 @@ export default defineComponent({
 
       const bounds = [[0, 0], [10334, 3818]]
       const image = await import("../assets/maps/induction.jpg")
-      L.imageOverlay(image.default, bounds).addTo(map)
+      this.Leaflet.imageOverlay(image.default, bounds).addTo(map)
 
       map.setView([bounds[1][0] - window.innerHeight, window.innerWidth], -1)
       map.setMaxBounds([bounds[0].map(x => x - 500), bounds[1].map(x => x + 500)])

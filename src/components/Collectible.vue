@@ -5,7 +5,7 @@ l-marker(:lat-lng="pos")
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
+import {defineComponent} from "vue"
 import {LIcon, LMarker, LTooltip} from "@vue-leaflet/vue-leaflet"
 
 import chessPawn from "../assets/icons/chess-pawn.png"
@@ -16,7 +16,10 @@ import memo from "../assets/icons/memo.png"
 
 export default defineComponent({
   components: {LMarker, LIcon, LTooltip},
-  props: {type: String, pos: Array},
+  props: {
+    type: {type: String, required: true},
+    pos: {type: Array, required: true}
+  },
   setup(props) {
     let icon = ""
     let tooltip = ""
