@@ -9,24 +9,29 @@
       fa(:icon="['fas', 'map']")
       span Maps
 
-    a(href="https://docs.google.com/document/d/1t1un6AYGTEWPRUZGzZw14ZzDo56x7Bt5WcK1WmAve1U")
+    router-link(to="/guide")
       fa(:icon="['fas', 'book']")
       span Guide
 
-    a(href="https://discord.gg/T6JbGSG")
-      fa(:icon="['fab', 'discord']")
-      span Discord
-
-    a(href="https://www.speedrun.com/superliminal/resources")
+    router-link(to="/resources")
       fa(:icon="['fas', 'download']")
       span Resources
+
+    .row
+      a(href="https://discord.gg/T6JbGSG" target="_blank")
+        fa(:icon="['fab', 'discord']")
+
+      a(href="https://github.com/loriswit/superluminal" target="_blank")
+        fa(:icon="['fab', 'github']")
 
 </template>
 
 <script lang="ts">
 import {defineComponent} from "vue"
 
-export default defineComponent({})
+export default defineComponent({
+  name: "Home",
+})
 </script>
 
 <style lang="sass" scoped>
@@ -74,6 +79,16 @@ nav
 
     span
       margin-left: 20px
+
+  .row
+    margin-top: 35px
+    width: 300px
+    display: flex
+    justify-content: space-between
+
+    a
+      width: 125px
+      margin: 0
 
 @media (max-width: 500px)
   .home
