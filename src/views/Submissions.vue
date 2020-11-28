@@ -105,6 +105,7 @@ tr
 
 td
   padding: 10px 30px
+  white-space: nowrap
 
 .time
   text-align: right
@@ -150,6 +151,12 @@ button
     margin-top: 20px
 
     h1
-      font-size: 70px
+      font-size: 60px
+
+  table
+    font-size: 0.6em
+
+  td
+    padding: 10px 10px
 
 </style>
