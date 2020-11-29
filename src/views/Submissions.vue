@@ -23,9 +23,10 @@ import axios from "axios"
 
 export default defineComponent({
   name: "Home",
-  async setup() {
+  setup() {
     const apiRoot = "https://www.speedrun.com/api/v1"
     const uri = "/runs?game=pd0w3vv1&status=new&orderby=submitted&embed=players,category,level&max=10"
+
     const runs = reactive([])
 
     const formatTime = (time) =>
@@ -49,7 +50,8 @@ export default defineComponent({
 
     let offset = 0
     const loadMore = async () => {
-      const response = await axios.get(apiRoot + uri + "&offset=" + offset)
+      const max = 50
+      const response = await axios.get(`${apiRoot + uri}&max=${max}&offset=${offset}`)
       hasMore.value = response.data.pagination.links.find(({rel}) => rel == "next") !== undefined
       runs.push(...response.data.data)
       offset += 10
@@ -91,7 +93,7 @@ header
 
 table
   font-size: 0.7em
-  margin: auto
+  margin: 0 auto 60px
   border-collapse: collapse
 
 tr
