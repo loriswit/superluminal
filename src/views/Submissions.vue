@@ -56,7 +56,7 @@ export default defineComponent({
       const response = await axios.get(`${apiRoot + uri}&max=${max}&offset=${offset}`)
       hasMore.value = response.data.pagination.links.find(({rel}) => rel == "next") !== undefined
       runs.push(...response.data.data)
-      offset += 10
+      offset += max
     }
 
     loadMore()
