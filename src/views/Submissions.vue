@@ -27,7 +27,7 @@ export default defineComponent({
   name: "Home",
   setup() {
     const apiRoot = "https://www.speedrun.com/api/v1"
-    const uri = "/runs?game=pd0w3vv1&status=new&orderby=submitted&embed=players,category,level&max=10"
+    const uri = "/runs?game=pd0w3vv1&status=new&orderby=submitted&embed=players,category,level"
 
     const runs = reactive([])
 
