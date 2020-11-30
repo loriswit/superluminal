@@ -4,6 +4,7 @@ import Maps from "./views/Maps.vue"
 import Guide from "./views/Guide.vue"
 import Resources from "./views/Resources.vue"
 import Submissions from "./views/Submissions.vue"
+import Verifiers from "./views/Verifiers.vue"
 
 export default createRouter({
   history: createWebHistory(),
@@ -13,5 +14,6 @@ export default createRouter({
     {path: "/guide", component: Guide},
     {path: "/resources", component: Resources},
     {path: "/submissions", component: Submissions},
+    {path: "/verifiers", component: Verifiers},
   ]
 })
