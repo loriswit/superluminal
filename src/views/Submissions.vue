@@ -2,7 +2,9 @@
 .container
   header
     h1 S#[b u]bmitted r#[b u]ns
-    p oldest submissions
+    p(v-if="runs.length")
+      template(v-if="hasMore") more than&nbsp;
+      | #[b {{ runs.length }}] pending runs
 
   table
     tr(v-for="run in runs" @click="openRun(run.weblink)")
@@ -90,6 +92,9 @@ header
   p
     color: #709aba
     margin-bottom: 15px
+
+    b
+      color: #a7c8de
 
 table
   font-size: 0.7em
