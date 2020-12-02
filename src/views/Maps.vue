@@ -1,6 +1,11 @@
 <template lang="pug">
 .container
-  l-map#map( ref="map" @ready="onMapReady" :crs="Leaflet.CRS.Simple" :min-zoom="-3" :max-zoom="2")
+  l-map#map(
+    ref="map" @ready="onMapReady"
+    :crs="Leaflet.CRS.Simple"
+    :min-zoom="-3" :max-zoom="2"
+    :zoomAnimation="true")
+
     collectible(:pos="[6146, 1443]" type="chess-piece")
     collectible(:pos="[1504, 3532]" type="fire-alarm")
     collectible(:pos="[1637, 3406]" type="fire-extinguisher")
@@ -10,9 +15,6 @@
 </template>
 
 <script lang="ts">
-// temporary workaround to allow building vue-leaflet with Vite
-window.require = (lib) => import(lib)
-
 import {defineComponent} from "vue"
 import {LMap} from "@vue-leaflet/vue-leaflet"
 import "leaflet/dist/leaflet.css"
@@ -35,7 +37,7 @@ export default defineComponent({
       this.Leaflet.imageOverlay(image.default, bounds).addTo(map)
 
       map.setView([bounds[1][0] - window.innerHeight, window.innerWidth], -1)
-      map.setMaxBounds([bounds[0].map(x => x - 500), bounds[1].map(x => x + 500)])
+      map.setMaxBounds([bounds[0].map(x => x - 500), bounds[1].map(x => x + 1000)])
     }
   }
 })
