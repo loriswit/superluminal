@@ -1,43 +1,94 @@
 <template lang="pug">
+header
+  div
+    fa.icon(:icon="['fas', 'map']")
+    select(v-model="level")
+      option induction
+      option optical
+
+  button(@click="toggleMarkers")
+    fa(:icon="['fas', 'map-marker-alt']")
+    span {{ showMarkers ? "Hide " : "Show " }} markers
+
 .container
   l-map#map(
-    ref="map" @ready="onMapReady"
+    ref="map"
     :crs="Leaflet.CRS.Simple"
-    :min-zoom="-3" :max-zoom="2"
-    :zoomAnimation="true")
+    :min-zoom="-4" :max-zoom="2"
+    :zoomAnimation="true"
+    :style="{cursor: grab ? 'grab' : 'initial', background: color}"
+    @click="printLocation"
+    @mousemove="updateLocation")
 
-    collectible(:pos="[6146, 1443]" type="chess-piece")
-    collectible(:pos="[1504, 3532]" type="fire-alarm")
-    collectible(:pos="[1637, 3406]" type="fire-extinguisher")
-    collectible(:pos="[6124, 2300]" type="vending-machine")
-    collectible(:pos="[505, 3435]" type="blueprint")
-    portal(:pos1="[3959, 1666]" :pos2="[4139, 1969]")
+    component(:is="level" :markers="showMarkers" @draw="drawImage")
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue"
-import {LMap} from "@vue-leaflet/vue-leaflet"
+import {defineComponent, provide, ref} from "vue"
+import {LMap, LMarker, LTooltip} from "@vue-leaflet/vue-leaflet"
 import "leaflet/dist/leaflet.css"
 import "leaflet"
 
-import Collectible from "../components/Collectible.vue"
-import Portal from "../components/Portal.vue"
+import Induction from "../components/maps/Induction.vue"
+import Optical from "../components/maps/Optical.vue"
 
 export default defineComponent({
-  components: {LMap, Collectible, Portal},
+  components: {LMap, LMarker, LTooltip, Induction, Optical},
   setup() {
-    return {Leaflet: window.L}
+    const level = ref("induction")
+    const layer = ref(null)
+    const color = ref("black")
+
+    const map = ref(null)
+    provide("map", map)
+
+    const pos = ref(null)
+
+    const grab = ref(true)
+    addEventListener("keydown", e => {
+      if (e.code == "KeyP")
+        grab.value = false
+    })
+    addEventListener("keyup", e => {
+      if (e.code == "KeyP")
+        grab.value = true
+    })
+
+    const showMarkers = ref(true)
+
+    return {
+      Leaflet: window.L,
+      level, layer, color,
+      map, pos, grab, showMarkers
+    }
   },
   methods: {
-    async onMapReady() {
-      const map = this.$refs.map.leafletObject
+    updateLocation(event) {
+      if (event.latlng)
+        this.pos = event.latlng
+    },
+    drawImage(image, size, origin, color) {
+      const map = this.map.leafletObject
 
-      const bounds = [[0, 0], [10334, 3818]]
-      const image = await import("../assets/maps/induction.jpg")
-      this.Leaflet.imageOverlay(image.default, bounds).addTo(map)
+      if (this.layer)
+        this.layer.removeFrom(map)
 
-      map.setView([bounds[1][0] - window.innerHeight, window.innerWidth], -1)
+      this.color = color
+
+      const bounds = [[0, 0], size]
+      this.layer = this.Leaflet.imageOverlay(image, bounds)
+      this.layer.addTo(map)
+
+      map.setView([origin[0] - window.innerHeight, origin[1] - window.innerWidth], -1)
       map.setMaxBounds([bounds[0].map(x => x - 500), bounds[1].map(x => x + 1000)])
+    },
+    toggleMarkers() {
+      this.showMarkers = !this.showMarkers
+    },
+    printLocation() {
+      if (!this.grab && this.pos) {
+        console.log(`POS: [${Math.round(this.pos.lat)}, ${Math.round(this.pos.lng)}]`)
+      }
     }
   }
 })
@@ -45,9 +96,44 @@ export default defineComponent({
 
 <style lang="sass" scoped>
 .container
-  height: 100vh
+  height: calc(100vh - 50px)
   width: 100vw
 
-#map
-  background: black
+header, select, button
+  color: #eae2ac
+  background-color: #2b433e
+
+header
+  display: flex
+  justify-content: space-between
+  border-bottom: 2px solid #eae2ac
+  height: 50px
+
+  .icon
+    margin: 0 12px
+
+  button, select
+    font-family: "Bebas Neue", sans-serif
+    font-size: 1.5em
+    cursor: pointer
+    border: none
+    text-transform: uppercase
+    padding: 8px 12px
+    border-radius: 0
+    outline: none
+    height: 100%
+
+    option
+      font-family: "Bebas Neue", sans-serif
+
+    &:hover
+      background-color: #606e60
+
+  button
+    width: 180px
+
+    span
+      margin-left: 12px
+      font-family: "Bebas Neue", sans-serif
+
 </style>

@@ -13,6 +13,7 @@ import cupWithStraw from "../assets/icons/cup-with-straw.png"
 import fire from "../assets/icons/fire.png"
 import fireExtinguisher from "../assets/icons/fire-extinguisher.png"
 import memo from "../assets/icons/memo.png"
+import sparkles from "../assets/icons/sparkles.png"
 
 export default defineComponent({
   components: {LMarker, LIcon, LTooltip},
@@ -44,6 +45,10 @@ export default defineComponent({
       case "blueprint":
         icon = memo
         tooltip = "Blueprint"
+        break
+      case "constellation":
+        icon = sparkles
+        tooltip = "Constellation"
         break
       default:
         throw "Invalid collectible type: " + props.type
