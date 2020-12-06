@@ -10,7 +10,8 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     {path: "/", component: Home},
-    {path: "/map", component: Maps, meta: {title: "Maps"}},
+    {path: "/map", redirect: "/map/induction"},
+    {path: "/map/:level", component: Maps, meta: {title: "Maps"}},
     {path: "/guide", component: Guide, meta: {title: "Guide"}},
     {path: "/resources", component: Resources, meta: {title: "Resources"}},
     {path: "/submissions", component: Submissions, meta: {title: "Submissions"}},

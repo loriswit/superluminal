@@ -24,7 +24,8 @@ header
 </template>
 
 <script lang="ts">
-import {defineComponent, provide, ref} from "vue"
+import {defineComponent, provide, ref, watchEffect} from "vue"
+import {useRoute, useRouter} from "vue-router"
 import {LMap, LMarker, LTooltip} from "@vue-leaflet/vue-leaflet"
 import "leaflet/dist/leaflet.css"
 import "leaflet"
@@ -35,7 +36,15 @@ import Optical from "../components/maps/Optical.vue"
 export default defineComponent({
   components: {LMap, LMarker, LTooltip, Induction, Optical},
   setup() {
-    const level = ref("induction")
+    const route = useRoute()
+    const router = useRouter()
+
+    const level = ref(route.params.level ?? "induction")
+
+    watchEffect(() => {
+      router.push(level.value)
+    })
+
     const layer = ref(null)
     const color = ref("black")
 
