@@ -23,29 +23,31 @@ export default defineComponent({
   name: "Home",
   setup() {
     const apiRoot = "https://www.speedrun.com/api/v1"
-    const uri = "/runs?game=pd0w3vv1&status=verified&max=200"
+    const uri = "/runs?game=pd0w3vv1&max=200"
 
     let sortedStats = reactive([])
 
     const load = async () => {
       const examiners = []
 
-      let offset = 0
-      let hasMore = true
-      while(hasMore) {
-        const response = await axios.get(apiRoot + uri + "&offset=" + offset)
-        examiners.push(...response.data.data.map(r => ({id: r.status.examiner, il: r.level !== null})))
-        hasMore = response.data.pagination.links.find(({rel}) => rel == "next") !== undefined
-        offset += 200
+      for (const status of ["verified", "rejected"]) {
+        let offset = 0
+        let hasMore = true
+        while (hasMore) {
+          const response = await axios.get(`${apiRoot + uri}&status=${status}&offset=${offset}`)
+          examiners.push(...response.data.data.map(r => ({id: r.status.examiner, il: r.level !== null})))
+          hasMore = response.data.pagination.links.find(({rel}) => rel == "next") !== undefined
+          offset += 200
+        }
       }
 
       const stats = {}
-      for(const e of examiners){
-        if(!stats[e.id]) {
+      for (const e of examiners) {
+        if (!stats[e.id]) {
           const name = (await axios.get(apiRoot + "/users/" + e.id)).data.data.names.international
           stats[e.id] = {full: 0, il: 0, name}
         }
-        if(e.il)
+        if (e.il)
           stats[e.id].il++
         else
           stats[e.id].full++
