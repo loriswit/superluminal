@@ -16,6 +16,7 @@ const router = createRouter({
     {path: "/resources", component: Resources, meta: {title: "Resources"}},
     {path: "/submissions", component: Submissions, meta: {title: "Submissions"}},
     {path: "/verifiers", component: Verifiers, meta: {title: "Verifiers"}},
+    {path: "/:path(.*)*", redirect: "/"},
   ]
 })
 
