@@ -5,8 +5,9 @@
     p(v-if="runs.length")
       template(v-if="hasMore") more than&nbsp;
       | #[b {{ runs.length }}] pending runs
+    p(v-else) There are no pending runs 🎉
 
-  table
+  table(v-if="runs.length")
     tr(v-for="run in runs" @click="openRun(run.weblink)")
       td.player
         a(:href="run.players.data[0].weblink" target="_blank" @click.stop) {{ run.players.data[0].names.international }}
