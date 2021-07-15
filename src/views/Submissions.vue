@@ -33,7 +33,8 @@ export default defineComponent({
     const runs = reactive([])
 
     const formatTime = (time) =>
-      new Date(time * 1000).toISOString().substr(14, 9)
+      (Math.floor(time / 3600) + ":" + new Date(time * 1000).toISOString().substr(14, 8))
+        .replace(/^(0+:?)+/, "") // remove leading zeros
 
     const formatDate = (date) => new Date(date).toLocaleString()
 
