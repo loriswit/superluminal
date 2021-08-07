@@ -2,10 +2,16 @@
 .container
   header
     h1 S#[b u]bmitted r#[b u]ns
-    p(v-if="runs.length")
+
+    p(v-if="!ready") loading...
+    p(v-else-if="runs.length")
       template(v-if="hasMore") more than&nbsp;
       | #[b {{ runs.length }}] pending runs
-    p(v-else) There are no pending runs 🎉
+    p(v-else-if="!error") There are no pending runs 🎉
+
+    .error(v-if="error")
+      p The speedrun.com API returned an error
+      p.msg {{ error }}
 
   table(v-if="runs.length")
     tr(v-for="run in runs" @click="openRun(run.weblink)")
@@ -51,19 +57,27 @@ export default defineComponent({
       window.open(url, "_blank").focus()
 
     const hasMore = ref(false)
+    let ready = ref(false)
+    let error = ref("")
 
     let offset = 0
     const loadMore = async () => {
       const max = 50
-      const response = await axios.get(`${apiRoot + uri}&max=${max}&offset=${offset}`)
-      hasMore.value = response.data.pagination.links.find(({rel}) => rel == "next") !== undefined
-      runs.push(...response.data.data)
-      offset += max
+      try {
+        const response = await axios.get(`${apiRoot + uri}&max=${max}&offset=${offset}`)
+        hasMore.value = response.data.pagination.links.find(({rel}) => rel == "next") !== undefined
+        runs.push(...response.data.data)
+        offset += max
+      } catch (err) {
+        error.value = err.response?.data.message ?? err.message
+      } finally {
+        ready.value = true
+      }
     }
 
     loadMore()
 
-    return {runs, formatTime, formatDate, daysAgo, openRun, loadMore, hasMore}
+    return {runs, formatTime, formatDate, daysAgo, openRun, loadMore, hasMore, ready, error}
   }
 })
 </script>

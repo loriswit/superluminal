@@ -3,7 +3,13 @@
   header
     h1 top verifiers
 
-  table
+    p(v-if="!ready") loading...
+
+    .error(v-if="error")
+      p The speedrun.com API returned an error
+      p.msg {{ error }}
+
+  table(v-if="ready && !error")
     tr
       th
       th Full runs
@@ -16,7 +22,7 @@
 </template>
 
 <script lang="ts">
-import {defineComponent, reactive} from "vue"
+import {defineComponent, reactive, ref} from "vue"
 import axios from "axios"
 
 export default defineComponent({
@@ -26,39 +32,46 @@ export default defineComponent({
     const uri = "/runs?game=pd0w3vv1&max=200"
 
     let sortedStats = reactive([])
+    let ready = ref(false)
+    let error = ref("")
 
     const load = async () => {
       const examiners = []
-
-      for (const status of ["verified", "rejected"]) {
-        let offset = 0
-        let hasMore = true
-        while (hasMore) {
-          const response = await axios.get(`${apiRoot + uri}&status=${status}&offset=${offset}`)
-          examiners.push(...response.data.data.map(r => ({id: r.status.examiner, il: r.level !== null})))
-          hasMore = response.data.pagination.links.find(({rel}) => rel == "next") !== undefined
-          offset += 200
+      try {
+        for (const status of ["verified", "rejected"]) {
+          let offset = 0
+          let hasMore = true
+          while (hasMore) {
+            const response = await axios.get(`${apiRoot + uri}&status=${status}&offset=${offset}`)
+            examiners.push(...response.data.data.map(r => ({id: r.status.examiner, il: r.level !== null})))
+            hasMore = response.data.pagination.links.find(({rel}) => rel == "next") !== undefined
+            offset += 200
+          }
         }
-      }
 
-      const stats = {}
-      for (const e of examiners) {
-        if (!stats[e.id]) {
-          const name = (await axios.get(apiRoot + "/users/" + e.id)).data.data.names.international
-          stats[e.id] = {full: 0, il: 0, name}
+        const stats = {}
+        for (const e of examiners) {
+          if (!stats[e.id]) {
+            const name = (await axios.get(apiRoot + "/users/" + e.id)).data.data.names.international
+            stats[e.id] = {full: 0, il: 0, name}
+          }
+          if (e.il)
+            stats[e.id].il++
+          else
+            stats[e.id].full++
         }
-        if (e.il)
-          stats[e.id].il++
-        else
-          stats[e.id].full++
-      }
 
-      sortedStats.push(...Object.values(stats).sort((a, b) => (b.full + b.il) - (a.full + a.il)))
+        sortedStats.push(...Object.values(stats).sort((a, b) => (b.full + b.il) - (a.full + a.il)))
+      } catch (err) {
+        error.value = err.response?.data.message ?? err.message
+      } finally {
+        ready.value = true
+      }
     }
 
     load()
 
-    return {stats: sortedStats}
+    return {stats: sortedStats, ready, error}
   }
 })
 </script>
@@ -82,6 +95,9 @@ header
   h1
     color: #e9dbee
     font-size: 80px
+
+  p
+    color: #b888d0
 
 table
   font-size: 0.7em
