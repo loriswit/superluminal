@@ -19,6 +19,9 @@
         a(:href="run.players.data[0].weblink" target="_blank" @click.stop) {{ run.players.data[0].names.international }}
       td.category {{ run.level?.data?.name }} {{ run.category.data.name }}
       td.time {{ formatTime(run.times.primary_t) }}
+      td.platform
+        fa(v-if="run.system.platform === pcId" :icon="['fas', 'keyboard']" title="Played on PC")
+        fa(v-else :icon="['fas', 'gamepad']" title="Played on console")
       td.date(:title="formatDate(run.submitted)") {{ daysAgo(run.submitted) }}
 
   footer
@@ -32,6 +35,7 @@ import type {Run, RunsData} from "../common/types/speedrun"
 
 const apiRoot = "https://www.speedrun.com/api/v1"
 const uri = "/runs?game=pd0w3vv1&status=new&orderby=submitted&embed=players,category,level"
+const pcId = "8gej2n93"
 
 let runs = $ref(new Array<Run>())
 
@@ -130,10 +134,14 @@ td
   padding: 10px 30px
   white-space: nowrap
 
+  &.platform
+    padding: 10px 10px
+
 .time
   text-align: right
 
-.category, .date
+
+.category, .date, .platform
   text-align: center
 
 a

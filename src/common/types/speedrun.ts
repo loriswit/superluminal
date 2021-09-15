@@ -15,6 +15,7 @@ export interface Run {
   players: { data: User[] }
   submitted: string
   times: { primary_t: number }
+  system: { platform: string }
 }
 
 export interface Link {
