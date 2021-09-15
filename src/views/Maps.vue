@@ -2,7 +2,7 @@
 header
   div
     fa.icon(:icon="['fas', 'map']")
-    select(v-model="level")
+    select(v-model="levelName")
       option induction
       option optical
 
@@ -11,96 +11,95 @@ header
     span {{ showMarkers ? "Hide " : "Show " }} markers
 
 .container
-  l-map#map(
+  LMap#map(
     ref="map"
-    :crs="Leaflet.CRS.Simple"
+    :crs="CRS.Simple"
     :min-zoom="-4" :max-zoom="2"
     :zoomAnimation="true"
-    :style="{cursor: grab ? 'grab' : 'initial', background: color}"
+    :style="{cursor: grab ? 'grab' : 'initial', background}"
     @click="printLocation"
     @mousemove="updateLocation")
 
     component(:is="level" :markers="showMarkers" @draw="drawImage")
 </template>
 
-<script lang="ts">
-import {defineComponent, provide, ref, watchEffect} from "vue"
+<script setup lang="ts">
+import {provide, watchEffect} from "vue"
 import {useRoute, useRouter} from "vue-router"
-import {LMap, LMarker, LTooltip} from "@vue-leaflet/vue-leaflet"
+import {CRS, imageOverlay, ImageOverlay, LatLng, LatLngBoundsLiteral, LatLngTuple, LeafletMouseEvent} from "leaflet"
+import {LMap} from "@vue-leaflet/vue-leaflet"
+import {MapKey} from "../common/injection-keys"
 import "leaflet/dist/leaflet.css"
-import "leaflet"
 
 import Induction from "../components/maps/Induction.vue"
 import Optical from "../components/maps/Optical.vue"
 
-export default defineComponent({
-  components: {LMap, LMarker, LTooltip, Induction, Optical},
-  setup() {
-    const route = useRoute()
-    const router = useRouter()
+const route = useRoute()
+const router = useRouter()
 
-    const level = ref(route.params.level ?? "induction")
+const levels = new Map([
+  ["induction", Induction],
+  ["optical", Optical],
+])
 
-    watchEffect(() => {
-      router.push(level.value)
-    })
+let levelName = $ref(route.params.level as string ?? "induction")
+let level = $computed(() => levels.get(levelName))
 
-    const layer = ref(null)
-    const color = ref("black")
+watchEffect(() => router.push(levelName))
 
-    const map = ref(null)
-    provide("map", map)
+let layer = $ref(null as ImageOverlay | null)
+let background = $ref("black")
 
-    const pos = ref(null)
+let map = $ref<typeof LMap | null>(null)
+provide(MapKey, $$(map))
 
-    const grab = ref(true)
-    addEventListener("keydown", e => {
-      if (e.code == "KeyP")
-        grab.value = false
-    })
-    addEventListener("keyup", e => {
-      if (e.code == "KeyP")
-        grab.value = true
-    })
+let pos = $ref(new LatLng(0, 0))
 
-    const showMarkers = ref(true)
-
-    return {
-      Leaflet: window.L,
-      level, layer, color,
-      map, pos, grab, showMarkers
-    }
-  },
-  methods: {
-    updateLocation(event) {
-      if (event.latlng)
-        this.pos = event.latlng
-    },
-    drawImage(image, size, origin, color) {
-      const map = this.map.leafletObject
-
-      if (this.layer)
-        this.layer.removeFrom(map)
-
-      this.color = color
-
-      const bounds = [[0, 0], size]
-      this.layer = this.Leaflet.imageOverlay(image, bounds)
-      this.layer.addTo(map)
-
-      map.setView([origin[0] - window.innerHeight, origin[1] - window.innerWidth], -1)
-      map.setMaxBounds([bounds[0].map(x => x - 500), bounds[1].map(x => x + 1000)])
-    },
-    toggleMarkers() {
-      this.showMarkers = !this.showMarkers
-    },
-    printLocation() {
-      if (!this.grab && this.pos) {
-        console.log(`POS: [${Math.round(this.pos.lat)}, ${Math.round(this.pos.lng)}]`)
-      }
-    }
-  }
+let grab = $ref(true)
+addEventListener("keydown", e => {
+  if (e.code == "KeyP")
+    grab = false
 })
+addEventListener("keyup", e => {
+  if (e.code == "KeyP")
+    grab = true
+})
+
+let showMarkers = $ref(true)
+
+function updateLocation(event: LeafletMouseEvent) {
+  if (event.latlng)
+    pos = event.latlng
+}
+
+function drawImage(image: string, size: LatLngTuple, origin: LatLngTuple, color: string): void {
+  if (!map) return
+  const leafletMap = map.leafletObject
+
+  if (layer)
+    layer.removeFrom(leafletMap)
+
+  background = color
+
+  const bounds: LatLngBoundsLiteral = [[0, 0], size]
+  layer = imageOverlay(image, bounds)
+  layer.addTo(leafletMap)
+
+  leafletMap.setView([origin[0] - window.innerHeight, origin[1] - window.innerWidth], -1)
+  leafletMap.setMaxBounds([bounds[0].map(x => x - 500), bounds[1].map(x => x + 1000)])
+}
+
+function toggleMarkers() {
+  showMarkers = !showMarkers
+}
+
+function printLocation() {
+  if (!grab && pos) {
+    console.log(`POS: [${Math.round(pos.lat)}, ${Math.round(pos.lng)}]`)
+  }
+}
+
+export type DrawImage = typeof drawImage
 </script>
 
 <style lang="sass" scoped>

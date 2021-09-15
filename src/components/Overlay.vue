@@ -1,38 +1,37 @@
 <template lang="pug">
-l-marker(:lat-lng="pos" @click="shown = !shown")
-  l-icon(:icon-url="icon" :icon-size="[48, 48]")
-  l-tooltip {{ (shown ? "Hide " : "Show ") + name }}
+LMarker(:lat-lng="pos" @click="shown = !shown")
+  LIcon(:icon-url="icon" :icon-size="[48, 48]")
+  LTooltip {{ (shown ? "Hide " : "Show ") + name }}
 </template>
 
-<script lang="ts">
-import {defineComponent, inject, ref, watchEffect} from "vue"
+<script setup lang="ts">
+import {inject, watchEffect} from "vue"
 import {LIcon, LMarker, LTooltip} from "@vue-leaflet/vue-leaflet"
+import {imageOverlay, LatLngBoundsExpression, LatLngTuple} from "leaflet"
 
 import icon from "../assets/icons/eye.png"
+import {MapKey} from "../common/injection-keys"
 
-export default defineComponent({
-  components: {LMarker, LIcon, LTooltip},
-  props: {
-    name: {type: String, required: true},
-    pos: {type: Array, required: true},
-    overlay: {type: String, required: true},
-    bounds: {type: Array, required: true},
-  },
-  setup(props) {
-    const Leaflet = window.L
-    const layer = Leaflet.imageOverlay(props.overlay, props.bounds)
-    const shown = ref(false)
+const props = defineProps<{
+  name: string,
+  pos: LatLngTuple,
+  overlay: string
+  bounds: LatLngBoundsExpression
+}>()
 
-    const map = inject("map")
+const layer = imageOverlay(props.overlay, props.bounds)
+let shown = $ref(false)
 
-    watchEffect(() => {
-      if (shown.value)
-        layer.addTo(map.value.leafletObject)
-      else
-        layer.removeFrom(map.value.leafletObject)
-    })
+const mapRef = inject(MapKey)
+if (!mapRef) throw "map is not provided"
 
-    return {icon, layer, shown}
-  }
+let map = $(mapRef)
+
+watchEffect(() => {
+  if (map)
+    if (shown)
+      layer.addTo(map.leafletObject)
+    else
+      layer.removeFrom(map.leafletObject)
 })
 </script>

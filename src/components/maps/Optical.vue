@@ -42,8 +42,9 @@ template(v-if="markers")
   portal(:pos1="[809, 15583]" :pos2="[750, 16679]")
 </template>
 
-<script lang="ts">
-import {defineComponent} from "vue"
+<script setup lang="ts">
+import {LatLngTuple} from "leaflet"
+import type {DrawImage} from "../../views/Maps.vue"
 
 import Collectible from "../Collectible.vue"
 import Portal from "../Portal.vue"
@@ -53,17 +54,10 @@ import Overlay from "../Overlay.vue"
 import image from "../../assets/maps/optical.jpg"
 import overlay from "../../assets/maps/optical_overlay.jpg"
 
-export default defineComponent({
-  name: "Induction",
-  components: {Collectible, Portal, Achievement, Overlay},
-  props: {markers: Boolean},
-  emits: ["draw"],
-  setup(_, {emit}) {
-    const size = [13862, 16934]
-    const origin = [11250, 0]
-    emit("draw", image, size, origin, "#040c19")
+defineProps<{ markers?: boolean }>()
+const emit = defineEmits<{ (e: "draw", ...args: Parameters<DrawImage>): void }>()
 
-    return {overlay}
-  }
-})
+const size: LatLngTuple = [13862, 16934]
+const origin: LatLngTuple = [11250, 0]
+emit("draw", image, size, origin, "#040c19")
 </script>

@@ -1,23 +1,17 @@
 <template lang="pug">
-l-marker(:lat-lng="pos")
-  l-icon(:icon-url="icon" :icon-size="[48, 48]")
-  l-tooltip {{ name }}
+LMarker(:lat-lng="pos")
+  LIcon(:icon-url="icon" :icon-size="[48, 48]")
+  LTooltip {{ name }}
 </template>
 
-<script lang="ts">
-import {defineComponent} from "vue"
-import {LIcon, LMarker, LPolyline, LTooltip} from "@vue-leaflet/vue-leaflet"
+<script setup lang="ts">
+import {LIcon, LMarker, LTooltip} from "@vue-leaflet/vue-leaflet"
+import {LatLngTuple} from "leaflet"
 
-import trophy from "../assets/icons/trophy.png"
+import icon from "../assets/icons/trophy.png"
 
-export default defineComponent({
-  components: {LMarker, LIcon, LTooltip, LPolyline},
-  props: {
-    name: {type: String, required: true},
-    pos: {type: Array, required: true}
-  },
-  setup() {
-    return {icon: trophy}
-  }
-})
+defineProps<{
+  name: string
+  pos: LatLngTuple
+}>()
 </script>

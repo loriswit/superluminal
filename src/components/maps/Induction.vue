@@ -8,22 +8,19 @@ template(v-if="markers")
   portal(:pos1="[3959, 1666]" :pos2="[4139, 1969]")
 </template>
 
-<script lang="ts">
-import {defineComponent} from "vue"
+<script setup lang="ts">
+import {LatLngTuple} from "leaflet"
+import type {DrawImage} from "../../views/Maps.vue"
+
 import Collectible from "../Collectible.vue"
 import Portal from "../Portal.vue"
 
 import image from "../../assets/maps/induction.jpg"
 
-export default defineComponent({
-  name: "Induction",
-  components: {Collectible, Portal},
-  props: {markers: Boolean},
-  emits: ["draw"],
-  setup(_, {emit}) {
-    const size = [10334, 3818]
-    const origin = [size[0], 0]
-    emit("draw", image, size, origin, "black")
-  }
-})
+defineProps<{ markers?: boolean }>()
+const emit = defineEmits<{ (e: "draw", ...args: Parameters<DrawImage>): void }>()
+
+const size: LatLngTuple = [10334, 3818]
+const origin: LatLngTuple = [size[0], 0]
+emit("draw", image, size, origin, "black")
 </script>

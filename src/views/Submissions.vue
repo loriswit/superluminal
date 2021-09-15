@@ -17,7 +17,7 @@
     tr(v-for="run in runs" @click="openRun(run.weblink)")
       td.player
         a(:href="run.players.data[0].weblink" target="_blank" @click.stop) {{ run.players.data[0].names.international }}
-      td.category {{ run.level.data.name }} {{ run.category.data.name }}
+      td.category {{ run.level?.data?.name }} {{ run.category.data.name }}
       td.time {{ formatTime(run.times.primary_t) }}
       td.date(:title="formatDate(run.submitted)") {{ daysAgo(run.submitted) }}
 
@@ -26,60 +26,60 @@
 
 </template>
 
-<script lang="ts">
-import {defineComponent, reactive, ref} from "vue"
-import axios from "axios"
+<script setup lang="ts">
+import axios, {AxiosResponse} from "axios"
+import type {Run, RunsData} from "../common/types/speedrun"
 
-export default defineComponent({
-  name: "Home",
-  setup() {
-    const apiRoot = "https://www.speedrun.com/api/v1"
-    const uri = "/runs?game=pd0w3vv1&status=new&orderby=submitted&embed=players,category,level"
+const apiRoot = "https://www.speedrun.com/api/v1"
+const uri = "/runs?game=pd0w3vv1&status=new&orderby=submitted&embed=players,category,level"
 
-    const runs = reactive([])
+let runs = $ref(new Array<Run>())
 
-    const formatTime = (time) =>
-      (Math.floor(time / 3600) + ":" + new Date(time * 1000).toISOString().substr(14, 8))
-        .replace(/^(0+:?)+/, "") // remove leading zeros
+function formatTime(time: number) {
+  return (Math.floor(time / 3600) + ":" + new Date(time * 1000).toISOString().substr(14, 8))
+    .replace(/^(0+:?)+/, "") // remove leading zeros
+}
 
-    const formatDate = (date) => new Date(date).toLocaleString()
+function formatDate(date: string) {
+  return new Date(date).toLocaleString()
+}
 
-    const daysAgo = (date) => {
-      const days = Math.floor((new Date() - new Date(date)) / 86400000)
-      if (days == 0)
-        return "Today"
-      if (days == 1)
-        return "1 day ago"
-      return days + " days ago"
-    }
+function daysAgo(date: string) {
+  const days = Math.floor((new Date().getTime() - new Date(date).getTime()) / 86400000)
+  if (days == 0)
+    return "Today"
+  if (days == 1)
+    return "1 day ago"
+  return days + " days ago"
+}
 
-    const openRun = (url) =>
-      window.open(url, "_blank").focus()
+function openRun(url: string) {
+  window.open(url, "_blank")?.focus()
+}
 
-    const hasMore = ref(false)
-    let ready = ref(false)
-    let error = ref("")
+let hasMore = $ref(false)
+let ready = $ref(false)
+let error = $ref("")
 
-    let offset = 0
-    const loadMore = async () => {
-      const max = 50
-      try {
-        const response = await axios.get(`${apiRoot + uri}&max=${max}&offset=${offset}`)
-        hasMore.value = response.data.pagination.links.find(({rel}) => rel == "next") !== undefined
-        runs.push(...response.data.data)
-        offset += max
-      } catch (err) {
-        error.value = err.response?.data.message ?? err.message
-      } finally {
-        ready.value = true
-      }
-    }
+let offset = 0
 
-    loadMore()
-
-    return {runs, formatTime, formatDate, daysAgo, openRun, loadMore, hasMore, ready, error}
+async function loadMore() {
+  const max = 50
+  try {
+    const response: AxiosResponse<RunsData> = await axios.get(`${apiRoot + uri}&max=${max}&offset=${offset}`)
+    hasMore = response.data.pagination.links.find(({rel}) => rel === "next") !== undefined
+    runs.push(...response.data.data)
+    offset += max
+  } catch (err) {
+    if (!axios.isAxiosError(err)) throw err
+    error = err.response?.data.message ?? err.message
+    if (!error.length) error = err.message
+  } finally {
+    ready = true
   }
-})
+}
+
+loadMore()
 </script>
 
 <style lang="sass" scoped>

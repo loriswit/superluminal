@@ -14,66 +14,74 @@
       th
       th Full runs
       th IL runs
-    tr(v-for="stat in stats")
+    tr(v-for="stat in sortedStats")
       td.player
         a(:href="`https://www.speedrun.com/user/${stat.name}`" target="_blank") {{ stat.name }}
       td.count {{ stat.full }}
       td.count {{ stat.il }}
 </template>
 
-<script lang="ts">
-import {defineComponent, reactive, ref} from "vue"
-import axios from "axios"
+<script setup lang="ts">
+import axios, {AxiosResponse} from "axios"
+import type {RunsData, UserData} from "../common/types/speedrun"
 
-export default defineComponent({
-  name: "Home",
-  setup() {
-    const apiRoot = "https://www.speedrun.com/api/v1"
-    const uri = "/runs?game=pd0w3vv1&max=200"
+const apiRoot = "https://www.speedrun.com/api/v1"
+const uri = "/runs?game=pd0w3vv1&max=200"
 
-    let sortedStats = reactive([])
-    let ready = ref(false)
-    let error = ref("")
+interface Stat {
+  name: string
+  full: number
+  il: number
+}
 
-    const load = async () => {
-      const examiners = []
-      try {
-        for (const status of ["verified", "rejected"]) {
-          let offset = 0
-          let hasMore = true
-          while (hasMore) {
-            const response = await axios.get(`${apiRoot + uri}&status=${status}&offset=${offset}`)
-            examiners.push(...response.data.data.map(r => ({id: r.status.examiner, il: r.level !== null})))
-            hasMore = response.data.pagination.links.find(({rel}) => rel == "next") !== undefined
-            offset += 200
-          }
-        }
+interface Examiner {
+  id: string
+  il: boolean
+}
 
-        const stats = {}
-        for (const e of examiners) {
-          if (!stats[e.id]) {
-            const name = (await axios.get(apiRoot + "/users/" + e.id)).data.data.names.international
-            stats[e.id] = {full: 0, il: 0, name}
-          }
-          if (e.il)
-            stats[e.id].il++
-          else
-            stats[e.id].full++
-        }
+let sortedStats = $ref(new Array<Stat>())
+let ready = $ref(false)
+let error = $ref("")
 
-        sortedStats.push(...Object.values(stats).sort((a, b) => (b.full + b.il) - (a.full + a.il)))
-      } catch (err) {
-        error.value = err.response?.data.message ?? err.message
-      } finally {
-        ready.value = true
+async function load() {
+  const examiners: Examiner[] = []
+  try {
+    for (const status of ["verified", "rejected"]) {
+      let offset = 0
+      let hasMore = true
+      while (hasMore) {
+        const response: AxiosResponse<RunsData> = await axios.get(`${apiRoot + uri}&status=${status}&offset=${offset}`)
+        examiners.push(...response.data.data.map(r => ({id: r.status.examiner, il: r.level !== null})))
+        hasMore = response.data.pagination.links.find(({rel}) => rel == "next") !== undefined
+        offset += 200
       }
     }
 
-    load()
+    const stats: Record<string, Stat> = {}
+    for (const e of examiners) {
+      if (!stats[e.id]) {
+        const response: AxiosResponse<UserData> = await axios.get(apiRoot + "/users/" + e.id)
+        const name = response.data.data.names.international
+        stats[e.id] = {full: 0, il: 0, name}
+      }
+      if (e.il)
+        stats[e.id].il++
+      else
+        stats[e.id].full++
+    }
 
-    return {stats: sortedStats, ready, error}
+    sortedStats.push(...Object.values(stats).sort((a, b) => (b.full + b.il) - (a.full + a.il)))
+
+  } catch (err) {
+    if (!axios.isAxiosError(err)) throw err
+    error = err.response?.data.message ?? err.message
+    if (!error.length) error = err.message
+  } finally {
+    ready = true
   }
-})
+}
+
+load()
 </script>
 
 <style lang="sass" scoped>
