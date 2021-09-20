@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import axios, {AxiosResponse} from "axios"
-import type {Run, RunsData} from "../common/types/speedrun"
+import type {Resources, Run} from "../common/types/speedrun"
 
 const apiRoot = "https://www.speedrun.com/api/v1"
 const uri = "/runs?game=pd0w3vv1&status=new&orderby=submitted&embed=players,category,level"
@@ -70,7 +70,7 @@ let offset = 0
 async function loadMore() {
   const max = 50
   try {
-    const response: AxiosResponse<RunsData> = await axios.get(`${apiRoot + uri}&max=${max}&offset=${offset}`)
+    const response: AxiosResponse<Resources<Run>> = await axios.get(`${apiRoot + uri}&max=${max}&offset=${offset}`)
     hasMore = response.data.pagination.links.find(({rel}) => rel === "next") !== undefined
     runs.push(...response.data.data)
     offset += max
