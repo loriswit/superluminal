@@ -145,11 +145,38 @@ else {
 
 <style lang="sass" scoped>
 .container
-  min-height: 100vh
-  overflow: auto
+  height: 100vh
+  overflow-y: scroll
   font-size: 40px
   color: white
   background: linear-gradient(#5a3359, #3b1a3e)
+
+  $scroll-track: rgba(200, 200, 255, 0.1)
+  $scroll-thumb: rgba(200, 200, 255, 0.25)
+  $scroll-hover: rgba(200, 200, 255, 0.35)
+
+  // webkit
+  &::-webkit-scrollbar
+    width: 24px
+
+  &::-webkit-scrollbar-track
+    background-color: $scroll-track
+    background-clip: padding-box
+    border: 8px solid transparent
+    border-radius: 100px
+
+  &::-webkit-scrollbar-thumb
+    background-color: $scroll-thumb
+    background-clip: padding-box
+    border: 8px solid transparent
+    border-radius: 100px
+
+    &:hover
+      background-color: $scroll-hover
+
+  // firefox
+  scrollbar-width: thin
+  scrollbar-color: $scroll-thumb $scroll-track
 
   *
     font-family: "Bebas Neue", sans-serif
