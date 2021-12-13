@@ -3,6 +3,11 @@
   header
     h1 top verifiers
 
+    select(v-model="statsId")
+      option(value="main") Main Categories
+      option(value="ce") Category Extensions
+      option(value="combined") Combined
+
     p(v-if="!ready") loading...
 
     .error(v-if="error")
@@ -14,7 +19,7 @@
       th
       th Full runs
       th IL runs
-    tr(v-for="stat in sortedStats")
+    tr(v-for="stat in currentStats")
       td.player
         a(:class="{mod: stat.moderator}" :href="`https://www.speedrun.com/user/${stat.name}`" target="_blank") {{ stat.name }}
           fa(v-if="stat.moderator" :icon="['fas', 'star']" title="active moderator")
@@ -25,9 +30,11 @@
 <script setup lang="ts">
 import axios, {AxiosResponse} from "axios"
 import type {Game, Id, Resource, Resources, Run, User} from "../common/types/speedrun"
+import {watch} from "vue"
 
 const apiRoot = "https://www.speedrun.com/api/v1"
-const uri = "/runs?game=pd0w3vv1&max=200"
+const mainId = "pd0w3vv1"
+const ceId = "kdkmvkq1"
 
 interface Stat {
   name: string
@@ -41,52 +48,99 @@ interface Examiner {
   il: boolean
 }
 
-let sortedStats = $ref(new Array<Stat>())
-let ready = $ref(false)
+let statsData = $ref<Record<string, Stat[]>>({main: [], ce: []})
+let loading = $ref<Record<string, boolean>>({main: false, ce: false})
+let ready = $computed(() => !Object.values(loading).includes(true))
+let statsId = $ref("")
+
 let error = $ref("")
 
-async function load() {
-  const game: AxiosResponse<Resource<Game>> = await axios.get(`${apiRoot}/games/pd0w3vv1`)
-  const moderators = Object.keys(game.data.data.moderators)
 
-  const examiners: Examiner[] = []
+let currentStats = $computed(() => {
+  if (statsId === "combined") {
+    // clone array
+    const combined: Stat[] = statsData.main.map(stat => ({...stat}))
+    for (const stat of statsData.ce) {
+      const index = combined.findIndex(({name}) => name === stat.name)
+      // if already in main game
+      if (index >= 0) {
+        combined[index].full += stat.full
+        combined[index].il += stat.il
+        combined[index].moderator ||= stat.moderator
+      } else
+        combined.push(stat)
+    }
+    return combined.sort((a, b) => (b.full + b.il) - (a.full + a.il))
+  } else
+    return statsData[statsId]
+})
+
+async function load(id: string) {
+  // skip if already loaded
+  if (statsData[id].length) return
+  loading[id] = true
+
+  const gameId = id === "main" ? mainId : ceId
+
   try {
+    const game: AxiosResponse<Resource<Game>> = await axios.get(`${apiRoot}/games/${gameId}`)
+    const moderators = Object.keys(game.data.data.moderators)
+
+    const examiners: Examiner[] = []
+
     for (const status of ["verified", "rejected"]) {
       let offset = 0
       let hasMore = true
       while (hasMore) {
-        const response: AxiosResponse<Resources<Run>> = await axios.get(`${apiRoot + uri}&status=${status}&offset=${offset}`)
+        const response: AxiosResponse<Resources<Run>> =
+          await axios.get(`${apiRoot}/runs?game=${gameId}&max=200&status=${status}&offset=${offset}`)
         examiners.push(...response.data.data.map(r => ({id: r.status.examiner, il: r.level !== null})))
         hasMore = response.data.pagination.links.find(({rel}) => rel == "next") !== undefined
         offset += 200
       }
     }
 
-    const stats: Record<Id, Stat> = {}
+    const statsMap: Record<Id, Stat> = {}
     for (const examiner of examiners) {
-      if (!stats[examiner.id]) {
+      if (!statsMap[examiner.id]) {
         const response: AxiosResponse<Resource<User>> = await axios.get(apiRoot + "/users/" + examiner.id)
         const name = response.data.data.names.international
-        stats[examiner.id] = {full: 0, il: 0, name, moderator: moderators.includes(examiner.id)}
+        statsMap[examiner.id] = {full: 0, il: 0, name, moderator: moderators.includes(examiner.id)}
       }
       if (examiner.il)
-        stats[examiner.id].il++
+        statsMap[examiner.id].il++
       else
-        stats[examiner.id].full++
+        statsMap[examiner.id].full++
     }
 
-    sortedStats.push(...Object.values(stats).sort((a, b) => (b.full + b.il) - (a.full + a.il)))
+    statsData[id] = Object.values(statsMap).sort((a, b) => (b.full + b.il) - (a.full + a.il))
 
   } catch (err) {
     if (!axios.isAxiosError(err)) throw err
     error = err.response?.data.message ?? err.message
     if (!error.length) error = err.message
   } finally {
-    ready = true
+    loading[id] = false
   }
 }
 
-load()
+watch($$(statsId), async statsId => {
+  if (window.location.hash || statsId !== "main")
+    window.location.hash = statsId
+  if (statsId === "combined")
+    await Promise.all([load("main"), load("ce")])
+  else
+    await load(statsId)
+})
+
+// parse URL hash value
+const hash = location.hash.substring(1)
+if (["main", "ce", "combined"].includes(hash))
+  statsId = hash
+else {
+  location.hash = ""
+  statsId = "main"
+}
 </script>
 
 <style lang="sass" scoped>
@@ -111,6 +165,25 @@ header
 
   p
     color: #b888d0
+
+select
+  font-size: 24px
+  background: rgba(255, 255, 255, 0.1)
+  padding: 6px
+  margin-bottom: 15px
+  color: white
+  border: none
+
+  &:hover
+    background: rgba(255, 255, 255, 0.15)
+    cursor: pointer
+
+  &:focus
+    outline: 1px solid rgba(255, 255, 255, 0.25)
+
+  option
+    background: #4b284f
+    border: none
 
 table
   font-size: 0.7em
