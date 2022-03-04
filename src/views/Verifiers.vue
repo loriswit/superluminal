@@ -55,7 +55,6 @@ let statsId = $ref("")
 
 let error = $ref("")
 
-
 let currentStats = $computed(() => {
   if (statsId === "combined") {
     // clone array
@@ -101,17 +100,18 @@ async function load(id: string) {
     }
 
     const statsMap: Record<Id, Stat> = {}
-    for (const examiner of examiners) {
+    await Promise.all(examiners.map(async examiner => {
       if (!statsMap[examiner.id]) {
+        statsMap[examiner.id] = {full: 0, il: 0, name: "", moderator: false}
         const response: AxiosResponse<Resource<User>> = await axios.get(apiRoot + "/users/" + examiner.id)
-        const name = response.data.data.names.international
-        statsMap[examiner.id] = {full: 0, il: 0, name, moderator: moderators.includes(examiner.id)}
+        statsMap[examiner.id].name = response.data.data.names.international
+        statsMap[examiner.id].moderator = moderators.includes(examiner.id)
       }
       if (examiner.il)
         statsMap[examiner.id].il++
       else
         statsMap[examiner.id].full++
-    }
+    }))
 
     statsData[id] = Object.values(statsMap).sort((a, b) => (b.full + b.il) - (a.full + a.il))
 
