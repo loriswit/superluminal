@@ -18,10 +18,10 @@
       span Resources
 
     .row
-      a(href="https://discord.gg/T6JbGSG" target="_blank")
+      a(href="https://discord.gg/T6JbGSG" title="Discord server" target="_blank")
         fa(:icon="['fab', 'discord']")
 
-      a(href="https://github.com/loriswit/superluminal" target="_blank")
+      a(href="https://github.com/loriswit/superluminal" title="GitHub repository" target="_blank")
         fa(:icon="['fab', 'github']")
 
 </template>
