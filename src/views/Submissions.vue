@@ -36,6 +36,7 @@ import type {Resources, Run} from "../common/types/speedrun"
 const apiRoot = "https://www.speedrun.com/api/v1"
 const uri = "/runs?game=pd0w3vv1&status=new&orderby=submitted&embed=players,category,level"
 const pcId = "8gej2n93"
+const refreshRate = 60 // refresh every 60 seconds
 
 let runs = $ref(new Array<Run>())
 
@@ -70,7 +71,9 @@ let offset = 0
 async function loadMore() {
   const max = 50
   try {
-    const response: AxiosResponse<Resources<Run>> = await axios.get(`${apiRoot + uri}&max=${max}&offset=${offset}`)
+    const timestamp = Math.floor(new Date().getTime() / 1000 / refreshRate)
+    const response: AxiosResponse<Resources<Run>> =
+      await axios.get(`${apiRoot + uri}&max=${max}&offset=${offset}&ts=${timestamp}`)
     hasMore = response.data.pagination.links.find(({rel}) => rel === "next") !== undefined
     runs.push(...response.data.data)
     offset += max

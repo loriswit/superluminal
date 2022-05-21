@@ -35,6 +35,7 @@ import {watch} from "vue"
 const apiRoot = "https://www.speedrun.com/api/v1"
 const mainId = "pd0w3vv1"
 const ceId = "kdkmvkq1"
+const refreshRate = 60 // refresh every 60 seconds
 
 interface Stat {
   name: string
@@ -91,8 +92,9 @@ async function load(id: string) {
       let offset = 0
       let hasMore = true
       while (hasMore) {
+        const timestamp = Math.floor(new Date().getTime() / 1000 / refreshRate)
         const response: AxiosResponse<Resources<Run>> =
-          await axios.get(`${apiRoot}/runs?game=${gameId}&max=200&status=${status}&offset=${offset}`)
+          await axios.get(`${apiRoot}/runs?game=${gameId}&max=200&status=${status}&offset=${offset}&ts=${timestamp}`)
         examiners.push(...response.data.data.map(r => ({id: r.status.examiner, il: r.level !== null})))
         hasMore = response.data.pagination.links.find(({rel}) => rel == "next") !== undefined
         offset += 200
