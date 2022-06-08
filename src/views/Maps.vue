@@ -98,8 +98,6 @@ function printLocation() {
     console.log(`POS: [${Math.round(pos.lat)}, ${Math.round(pos.lng)}]`)
   }
 }
-
-export type DrawImage = typeof drawImage
 </script>
 
 <style lang="sass" scoped>

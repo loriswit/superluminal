@@ -5,6 +5,7 @@ import Guide from "./views/Guide.vue"
 import Resources from "./views/Resources.vue"
 import Submissions from "./views/Submissions.vue"
 import Verifiers from "./views/Verifiers.vue"
+import Faq from "./views/Faq.vue"
 
 const router = createRouter({
   history: createWebHistory(),
@@ -16,6 +17,7 @@ const router = createRouter({
     {path: "/resources", component: Resources, meta: {title: "Resources"}},
     {path: "/submissions", component: Submissions, meta: {title: "Submissions"}},
     {path: "/verifiers", component: Verifiers, meta: {title: "Verifiers"}},
+    {path: "/faq", component: Faq, meta: {title: "FAQ"}},
     {path: "/:path(.*)*", redirect: "/"},
   ]
 })

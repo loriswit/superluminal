@@ -5,6 +5,10 @@
     p Superliminal speedrunning
 
   nav
+    router-link(to="/faq")
+      fa(:icon="['fas', 'question-circle']")
+      span FAQ
+
     router-link(to="/map")
       fa(:icon="['fas', 'map']")
       span Maps
@@ -43,7 +47,7 @@
 
 header
   text-align: center
-  margin-top: 60px
+  margin-top: 40px
 
   h1
     color: #dbeee8

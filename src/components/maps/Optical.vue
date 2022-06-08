@@ -44,7 +44,7 @@ template(v-if="markers")
 
 <script setup lang="ts">
 import {LatLngTuple} from "leaflet"
-import type {DrawImage} from "../../views/Maps.vue"
+import type {DrawParams} from "../../common/types/draw-image"
 
 import Collectible from "../Collectible.vue"
 import Portal from "../Portal.vue"
@@ -55,7 +55,7 @@ import image from "../../assets/maps/optical.jpg"
 import overlay from "../../assets/maps/optical_overlay.jpg"
 
 defineProps<{ markers?: boolean }>()
-const emit = defineEmits<{ (e: "draw", ...args: Parameters<DrawImage>): void }>()
+const emit = defineEmits<{ (e: "draw", ...args: DrawParams): void }>()
 
 const size: LatLngTuple = [13862, 16934]
 const origin: LatLngTuple = [11250, 0]
